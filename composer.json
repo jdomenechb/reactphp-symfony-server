@@ -1,0 +1,14 @@
+{
+    "name": "jdomenechb/reactphp-symfony-server",
+    "description": "ReactPHP server over Symfony framework",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jordi Domènech",
+            "email": "jdomenechbborges@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
