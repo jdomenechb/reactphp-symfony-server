@@ -4,7 +4,7 @@ require dirname(__DIR__, 3) . '/autoload.php';
 
 define('RPSS_PREFIX', '.reactphp-symfony-server-dist-');
 
-$projectRootPath = dirname(__DIR__, 4);
+$projectRootPath = dirname(__DIR__, 4   );
 
 // Check if the symfony index file exists and extract its date
 $symfonyIndexFile = $projectRootPath . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'index.php';
@@ -49,6 +49,10 @@ if (!$created) {
 
     while ($symfonyIndexFileObj->valid()) {
         $line = $symfonyIndexFileObj->fgets();
+
+        if (preg_match('#^require .*vendor/autoload#', $line)) {
+            continue;
+        }
 
         $result .= $line;
 
