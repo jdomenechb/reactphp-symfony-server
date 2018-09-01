@@ -93,14 +93,17 @@ $server = new \React\Http\Server(function (\Psr\Http\Message\ServerRequestInterf
     $method = $request->getMethod();
     $headers = $request->getHeaders();
     $content = $request->getBody()->getContents();
+    $path = $request->getUri()->getPath();
+
+    echo 'RPHPS -- ', $method, ' ', $path;
 
     // Check if the file exists in the server to serve it
     if ($method === 'GET') {
-        $resource = $projectRootPath . '/public' . $request->getUri()->getPath();
-        $resourceObj = new SplFileObject($resource);
+        $resource = $projectRootPath . DIRECTORY_SEPARATOR . 'public'
+            . str_replace('/', DIRECTORY_SEPARATOR, $path);
 
-        if ($resourceObj->isFile()) {
-            return new \React\Http\Response(200, [], $resourceObj->fread($resourceObj->getSize()));
+        if (file_exists($resource) && is_file($resource)) {
+            return new \React\Http\Response(200, [], file_get_contents($resource));
         }
     }
 
@@ -108,8 +111,9 @@ $server = new \React\Http\Server(function (\Psr\Http\Message\ServerRequestInterf
     $post = [];
 
     if (
-        \in_array(strtoupper($method), ['POST', 'PUT', 'DELETE', 'PATCH']) &&
-        isset($headers['Content-Type']) && (0 === strpos($headers['Content-Type'][0], 'application/x-www-form-urlencoded'))
+        \in_array(strtoupper($method), ['POST', 'PUT', 'DELETE', 'PATCH'])
+        && isset($headers['Content-Type'])
+        && (0 === strpos($headers['Content-Type'][0], 'application/x-www-form-urlencoded'))
     ) {
         parse_str($content, $post);
     }
@@ -127,7 +131,7 @@ $server = new \React\Http\Server(function (\Psr\Http\Message\ServerRequestInterf
 
     $sfRequest->setMethod($method);
     $sfRequest->headers->replace($headers);
-    $sfRequest->server->set('REQUEST_URI', $request->getUri()->getPath());
+    $sfRequest->server->set('REQUEST_URI', $path);
 
 //    if (isset($headers['Host'])) {
 //        $sfRequest->server->set('SERVER_NAME', explode(':', $headers['Host'])[0]);
