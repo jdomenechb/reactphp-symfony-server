@@ -20,7 +20,8 @@
         "Jdomenechb\\ReactPhpSymfonyServer\\": "src/"
       }
     },
-  "scripts": {
-    "post-update-cmd": "Jdomenechb\\ReactPhpSymfonyServer\\Script\\UpdateBin::update"
+  "bin": ["bin/reactphp-server"],
+  "config": {
+    "vendor-dir": "bin"
   }
 }
