@@ -1,10 +1,10 @@
 <?php
 
-require __DIR__ . '/../../../autoload.php';
+require dirname(__DIR__, 3) . '/autoload.php';
 
 define('RPSS_PREFIX', '.reactphp-symfony-server-dist-');
 
-$projectRootPath = dirname(\Composer\Factory::getComposerFile());
+$projectRootPath = dirname(__DIR__, 4);
 
 // Check if the symfony index file exists and extract its date
 $symfonyIndexFile = $projectRootPath . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'index.php';
