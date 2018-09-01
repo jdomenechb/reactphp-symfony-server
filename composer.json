@@ -21,7 +21,4 @@
       }
     },
   "bin": ["bin/reactphp-server"],
-  "config": {
-    "vendor-dir": "bin"
-  }
 }
