@@ -83,7 +83,7 @@ if (!$created) {
 require $created;
 
 // --- ReactPHP ----
-if (!($port = isset($_SERVER['APP_PORT']) ? $_SERVER['APP_PORT'] : null)) {
+if (!($port = isset($_SERVER['APP_PORT']) ? $_SERVER['APP_PORT'] : 8000)) {
     throw new \RuntimeException('APP_PORT environment variable is not defined. You need to define this environment variable to run the application as a server.');
 }
 
