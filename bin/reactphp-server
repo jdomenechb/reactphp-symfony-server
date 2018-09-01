@@ -88,70 +88,9 @@ if (!($port = isset($_SERVER['APP_PORT']) ? $_SERVER['APP_PORT'] : 8000)) {
 }
 
 $loop = \React\EventLoop\Factory::create();
+$requestLoop = new \Jdomenechb\ReactPhpSymfonyServer\Loop\RequestLoop($kernel, $projectRootPath);
 
-$server = new \React\Http\Server(function (\Psr\Http\Message\ServerRequestInterface $request) use ($kernel, $projectRootPath) {
-    $method = $request->getMethod();
-    $headers = $request->getHeaders();
-    $content = $request->getBody()->getContents();
-    $path = $request->getUri()->getPath();
-
-    echo 'RPHPS -- ', $method, ' ', $path;
-
-    // Check if the file exists in the server to serve it
-    if ($method === 'GET') {
-        $resource = $projectRootPath . DIRECTORY_SEPARATOR . 'public'
-            . str_replace('/', DIRECTORY_SEPARATOR, $path);
-
-        if (file_exists($resource) && is_file($resource)) {
-            return new \React\Http\Response(200, [], file_get_contents($resource));
-        }
-    }
-
-    // Get POST parameters
-    $post = [];
-
-    if (
-        \in_array(strtoupper($method), ['POST', 'PUT', 'DELETE', 'PATCH'])
-        && isset($headers['Content-Type'])
-        && (0 === strpos($headers['Content-Type'][0], 'application/x-www-form-urlencoded'))
-    ) {
-        parse_str($content, $post);
-    }
-
-    // Create the Symfony request
-    $sfRequest = new \Symfony\Component\HttpFoundation\Request(
-        $request->getQueryParams(),
-        $post,
-        [],
-        [],
-        $request->getUploadedFiles(),
-        [],
-        $content
-    );
-
-    $sfRequest->setMethod($method);
-    $sfRequest->headers->replace($headers);
-    $sfRequest->server->set('REQUEST_URI', $path);
-
-//    if (isset($headers['Host'])) {
-//        $sfRequest->server->set('SERVER_NAME', explode(':', $headers['Host'])[0]);
-//    }
-
-    try {
-        $sfResponse = $kernel->handle($sfRequest);
-
-        $kernel->terminate($sfRequest, $sfResponse);
-
-        return new \React\Http\Response(
-            $sfResponse->getStatusCode(),
-            $sfResponse->headers->all(),
-            $sfResponse->getContent()
-        );
-    } catch (\Throwable $e) {
-        echo $e->getMessage(), "\n", $e->getTraceAsString();
-    }
-});
-
+$server = new \React\Http\Server([$requestLoop, 'request']);
 $socket = new \React\Socket\Server('0.0.0.0:' . $port, $loop);
 $server->listen($socket);
 
