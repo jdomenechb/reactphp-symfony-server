@@ -20,5 +20,5 @@
         "Jdomenechb\\ReactPhpSymfonyServer\\": "src/"
       }
     },
-  "bin": ["bin/reactphp-server"],
+  "bin": ["bin/reactphp-server"]
 }
