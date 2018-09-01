@@ -2,9 +2,15 @@
 
 require dirname(__DIR__, 3) . '/autoload.php';
 
-define('RPSS_PREFIX', '.reactphp-symfony-server-dist-');
-
+/*
+ * Helpers
+ */
+$rpssPrefix = '.reactphp-symfony-server-dist-';
 $projectRootPath = dirname(__DIR__, 4   );
+
+/*
+ * Preparation of reference data
+ */
 
 // Check if the symfony index file exists and extract its date
 $symfonyIndexFile = $projectRootPath . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'index.php';
@@ -20,12 +26,13 @@ $symfonyIndexFileDate = $symfonyIndexFileInfoObj->getMTime();
 // Extract the bin file date
 $binDate = (new SplFileInfo(__FILE__))->getMTime();
 
+// See which is the most recent
 $updatedDate = max($binDate, $symfonyIndexFileDate);
 
 // Check if script file has been created and is updated
 $created = false;
 
-if ($files = glob(__DIR__ .  DIRECTORY_SEPARATOR . RPSS_PREFIX . '*')) {
+if ($files = glob(__DIR__ .  DIRECTORY_SEPARATOR . $rpssPrefix . '*')) {
     $file = array_shift($files);
 
     // Extract the reference date
@@ -39,10 +46,11 @@ if ($files = glob(__DIR__ .  DIRECTORY_SEPARATOR . RPSS_PREFIX . '*')) {
     }
 }
 
+// Create the script if needed
 if (!$created) {
     echo "Updating Startup...\n";
 
-    $path = __DIR__ . DIRECTORY_SEPARATOR . RPSS_PREFIX . $updatedDate;
+    $path = __DIR__ . DIRECTORY_SEPARATOR . $rpssPrefix . $updatedDate;
 
     $symfonyIndexFileObj = new SplFileObject($symfonyIndexFile);
     $result = '';
@@ -50,12 +58,16 @@ if (!$created) {
     while ($symfonyIndexFileObj->valid()) {
         $line = $symfonyIndexFileObj->fgets();
 
+        // Do not include the require vendor/autoload line
         if (preg_match('#^require .*vendor/autoload#', $line)) {
             continue;
         }
 
+        $line = str_replace('__DIR__', '$projectRootPath . \'/public\'', $line);
+
         $result .= $line;
 
+        // Stop after the kernel has been created
         if (preg_match('#\$kernel\s*=\s*#', $line)) {
             break;
         }
@@ -65,10 +77,13 @@ if (!$created) {
     $created = $path;
 }
 
+/*
+ * Server start
+ */
 require $created;
 
 // --- ReactPHP ----
-if (!($port = $_SERVER['APP_PORT'] ?? null)) {
+if (!($port = isset($_SERVER['APP_PORT']) ? $_SERVER['APP_PORT'] : null)) {
     throw new \RuntimeException('APP_PORT environment variable is not defined. You need to define this environment variable to run the application as a server.');
 }
 
@@ -123,7 +138,6 @@ $server = new \React\Http\Server(function (\Psr\Http\Message\ServerRequestInterf
     }
 });
 
-ini_set('display_errors', 1);
 $socket = new \React\Socket\Server('0.0.0.0:' . $port, $loop);
 $server->listen($socket);
 
