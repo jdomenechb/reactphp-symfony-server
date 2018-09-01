@@ -12,5 +12,15 @@
     "minimum-stability": "stable",
     "require": {
         "react/http": "^0.8.0"
-    }
+    },
+    "require-dev": {
+    },
+    "autoload": {
+      "psr-4": {
+        "Jdomenechb\\ReactPhpSymfonyServer\\": "src/"
+      }
+    },
+  "scripts": {
+    "post-update-cmd": "Jdomenechb\\ReactPhpSymfonyServer\\Script\\UpdateBin::update"
+  }
 }
