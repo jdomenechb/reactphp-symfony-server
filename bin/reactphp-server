@@ -89,10 +89,20 @@ if (!($port = isset($_SERVER['APP_PORT']) ? $_SERVER['APP_PORT'] : 8000)) {
 
 $loop = \React\EventLoop\Factory::create();
 
-$server = new \React\Http\Server(function (\Psr\Http\Message\ServerRequestInterface $request) use ($kernel) {
+$server = new \React\Http\Server(function (\Psr\Http\Message\ServerRequestInterface $request) use ($kernel, $projectRootPath) {
     $method = $request->getMethod();
     $headers = $request->getHeaders();
     $content = $request->getBody()->getContents();
+
+    // Check if the file exists in the server to serve it
+    if ($method === 'GET') {
+        $resource = $projectRootPath . '/public' . $request->getUri()->getPath();
+        $resourceObj = new SplFileObject($resource);
+
+        if ($resourceObj->isFile()) {
+            return new \React\Http\Response(200, [], $resourceObj->fread($resourceObj->getSize()));
+        }
+    }
 
     // Get POST parameters
     $post = [];
