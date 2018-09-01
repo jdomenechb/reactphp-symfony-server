@@ -11,7 +11,8 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "react/http": "^0.8.0"
+        "react/http": "^0.8.0",
+        "symfony/http-foundation": "*"
     },
     "require-dev": {
     },
