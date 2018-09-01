@@ -13,21 +13,30 @@ namespace Jdomenechb\ReactPhpSymfonyServer\Loop;
 
 use Psr\Http\Message\ServerRequestInterface;
 use React\Http\Response;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 class RequestLoop
 {
     private $kernel;
+
+    /** @var ConsoleOutputInterface */
+    private $consoleOutput;
+
+    /** @var string */
     private $projectRootPath;
 
     /**
      * RequestLoop constructor.
      * @param $kernel
+     * @param ConsoleOutputInterface $consoleOutput
      * @param $projectRootPath
      */
-    public function __construct($kernel, string $projectRootPath)
+    public function __construct($kernel, ConsoleOutputInterface $consoleOutput, $projectRootPath)
     {
         $this->kernel = $kernel;
+        $this->consoleOutput = $consoleOutput;
         $this->projectRootPath = $projectRootPath;
     }
 
@@ -38,7 +47,8 @@ class RequestLoop
         $content = $request->getBody()->getContents();
         $path = $request->getUri()->getPath();
 
-        echo 'RPHPS -- ', $method, ' ', $path;
+        $this->consoleOutput->writeln('RPHPS -- ' . $method . ' ' . $path);
+
 
         // Check if the file exists in the server to serve it
         if ($method === 'GET') {
@@ -81,6 +91,7 @@ class RequestLoop
 //    }
 
         try {
+            /** @var \Symfony\Component\HttpFoundation\Response $sfResponse */
             $sfResponse = $this->kernel->handle($sfRequest);
 
             $this->kernel->terminate($sfRequest, $sfResponse);
@@ -91,7 +102,7 @@ class RequestLoop
                 $sfResponse->getContent()
             );
         } catch (\Throwable $e) {
-            echo $e->getMessage(), "\n", $e->getTraceAsString();
+            $this->consoleOutput->getErrorOutput()->writeln($e->getMessage(), PHP_EOL, $e->getTraceAsString());
         }
     }
 }

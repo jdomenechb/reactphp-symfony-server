@@ -88,7 +88,11 @@ if (!($port = isset($_SERVER['APP_PORT']) ? $_SERVER['APP_PORT'] : 8000)) {
 }
 
 $loop = \React\EventLoop\Factory::create();
-$requestLoop = new \Jdomenechb\ReactPhpSymfonyServer\Loop\RequestLoop($kernel, $projectRootPath);
+$requestLoop = new \Jdomenechb\ReactPhpSymfonyServer\Loop\RequestLoop(
+    $kernel,
+    new \Symfony\Component\Console\Output\ConsoleOutput(),
+    $projectRootPath
+);
 
 $server = new \React\Http\Server([$requestLoop, 'request']);
 $socket = new \React\Socket\Server('0.0.0.0:' . $port, $loop);
