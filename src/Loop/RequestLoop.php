@@ -15,6 +15,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use React\Http\Response;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class RequestLoop
 {
@@ -99,6 +100,12 @@ class RequestLoop
                 $sfResponse->getStatusCode(),
                 $sfResponse->headers->all(),
                 $sfResponse->getContent()
+            );
+        } catch (NotFoundHttpException $e) {
+            return new Response(
+                404,
+                [],
+                '404: Page not found'
             );
         } catch (\Throwable $e) {
             $this->consoleOutput->getErrorOutput()->writeln($e->getMessage(), PHP_EOL, $e->getTraceAsString());
