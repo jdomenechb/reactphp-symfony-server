@@ -45,8 +45,9 @@ class RequestLoop
      *
      * @param ServerRequestInterface $request
      *
-     * @return null|Response
      * @throws \RuntimeException
+     *
+     * @return null|Response
      */
     public function request(ServerRequestInterface $request)
     {
@@ -121,14 +122,14 @@ class RequestLoop
     private function serveAssets(string $method, $path)
     {
         if ('GET' !== $method) {
-            return null;
+            return;
         }
 
         $resource = $this->projectRootPath . DIRECTORY_SEPARATOR . 'public'
             . \str_replace('/', DIRECTORY_SEPARATOR, $path);
 
         if (!\file_exists($resource) || !\is_file($resource)) {
-            return null;
+            return;
         }
 
         return new Response(200, [], \file_get_contents($resource));

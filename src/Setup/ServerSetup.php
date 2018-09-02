@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\ReactPhpSymfonyServer\Setup;
 
-
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 
 class ServerSetup
@@ -27,8 +26,9 @@ class ServerSetup
 
     /**
      * ServerSetup constructor.
-     * @param string $projectRootPath
-     * @param string $tmpFile
+     *
+     * @param string                 $projectRootPath
+     * @param string                 $tmpFile
      * @param ConsoleOutputInterface $consoleOutput
      */
     public function __construct(ConsoleOutputInterface $consoleOutput, string $projectRootPath, string $tmpFile)
@@ -39,16 +39,39 @@ class ServerSetup
     }
 
     /**
-     * Returns the path to the Symfony index file.
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return string
      */
-    private function getIndexFilePath() : string
+    public function startup(): string
+    {
+        $this->checkIndexFileExists();
+
+        $this->consoleOutput->writeln('Starting...');
+
+        if (\is_file($this->tmpFile)) {
+            \unlink($this->tmpFile);
+        }
+
+        $this->createTemporalFile();
+
+        return $this->tmpFile;
+    }
+
+    /**
+     * Returns the path to the Symfony index file.
+     *
+     * @return string
+     */
+    private function getIndexFilePath(): string
     {
         return $this->projectRootPath . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'index.php';
     }
 
     /**
      * Checks that the Symfony index file exists.
+     *
      * @throws \RuntimeException
      */
     private function checkIndexFileExists()
@@ -90,25 +113,5 @@ class ServerSetup
         }
 
         \file_put_contents($this->tmpFile, $result);
-    }
-
-    /**
-     * @return string
-     * @throws \LogicException
-     * @throws \RuntimeException
-     */
-    public function startup(): string
-    {
-        $this->checkIndexFileExists();
-
-        $this->consoleOutput->writeln('Starting...');
-
-        if (is_file($this->tmpFile)) {
-            unlink($this->tmpFile);
-        }
-
-        $this->createTemporalFile();
-
-        return $this->tmpFile;
     }
 }
