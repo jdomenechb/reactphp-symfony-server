@@ -19,14 +19,14 @@ require \dirname(__DIR__, 3) . '/autoload.php';
 /*
  * Helpers
  */
-$rpssPrefix = '.reactphp-symfony-server-dist-';
+$rpssPrefix = __DIR__ . '.reactphp-symfony-server-tmp';
 $projectRootPath = \dirname(__DIR__, 4);
 
 /*
  * Preparation of reference data
  */
 
-// Check if the symfony index file exists and extract its date
+// Check if the symfony index file exists
 $symfonyIndexFile = $projectRootPath . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'index.php';
 
 $symfonyIndexFileInfoObj = new SplFileInfo($symfonyIndexFile);
@@ -35,66 +35,41 @@ if (!$symfonyIndexFileInfoObj->isFile()) {
     throw new RuntimeException('The file ' . $symfonyIndexFileInfoObj->getPath() . ' does not exist');
 }
 
-$symfonyIndexFileDate = $symfonyIndexFileInfoObj->getMTime();
+// Delete the old temporal file
+if (is_file($rpssPrefix)) {
+    unlink($rpssPrefix);
+}
 
-// Extract the bin file date
-$binDate = (new SplFileInfo(__FILE__))->getMTime();
+// Update the temporal data from Symfony index
+echo "Updating Startup...\n";
 
-// See which is the most recent
-$updatedDate = \max($binDate, $symfonyIndexFileDate);
+$symfonyIndexFileObj = new SplFileObject($symfonyIndexFile);
+$result = '';
 
-// Check if script file has been created and is updated
-$created = false;
+while ($symfonyIndexFileObj->valid()) {
+    $line = $symfonyIndexFileObj->fgets();
 
-if ($files = \glob(__DIR__ . DIRECTORY_SEPARATOR . $rpssPrefix . '*')) {
-    $file = \array_shift($files);
+    // Do not include the require vendor/autoload line
+    if (\preg_match('#^require .*vendor/autoload#', $line)) {
+        continue;
+    }
 
-    // Extract the reference date
-    \preg_match('#-(\\d+)$#', $file, $matches);
-    $refDate = (int) $matches[1];
+    $line = \str_replace('__DIR__', '$projectRootPath . \'/public\'', $line);
 
-    if ($refDate === $updatedDate) {
-        $created = $file;
-    } else {
-        \unlink($file);
+    $result .= $line;
+
+    // Stop after the kernel has been created
+    if (\preg_match('#\\$kernel\\s*=\\s*#', $line)) {
+        break;
     }
 }
 
-// Create the script if needed
-if (!$created) {
-    echo "Updating Startup...\n";
-
-    $path = __DIR__ . DIRECTORY_SEPARATOR . $rpssPrefix . $updatedDate;
-
-    $symfonyIndexFileObj = new SplFileObject($symfonyIndexFile);
-    $result = '';
-
-    while ($symfonyIndexFileObj->valid()) {
-        $line = $symfonyIndexFileObj->fgets();
-
-        // Do not include the require vendor/autoload line
-        if (\preg_match('#^require .*vendor/autoload#', $line)) {
-            continue;
-        }
-
-        $line = \str_replace('__DIR__', '$projectRootPath . \'/public\'', $line);
-
-        $result .= $line;
-
-        // Stop after the kernel has been created
-        if (\preg_match('#\\$kernel\\s*=\\s*#', $line)) {
-            break;
-        }
-    }
-
-    \file_put_contents($path, $result);
-    $created = $path;
-}
+\file_put_contents($rpssPrefix, $result);
 
 /*
  * Server start
  */
-require $created;
+require $rpssPrefix;
 
 // --- ReactPHP ----
 if (!($port = $_SERVER['APP_PORT'] ?? 8000)) {
