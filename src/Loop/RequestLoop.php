@@ -40,6 +40,14 @@ class RequestLoop
         $this->projectRootPath = $projectRootPath;
     }
 
+    /**
+     * Main method to be called by ReactPHP everytime a file is received.
+     *
+     * @param ServerRequestInterface $request
+     *
+     * @return null|Response
+     * @throws \RuntimeException
+     */
     public function request(ServerRequestInterface $request)
     {
         $method = $request->getMethod();
@@ -50,22 +58,17 @@ class RequestLoop
         $this->consoleOutput->writeln('RPHPS -- ' . $method . ' ' . $path);
 
         // Check if the file exists in the server to serve it
-        if ('GET' === $method) {
-            $resource = $this->projectRootPath . DIRECTORY_SEPARATOR . 'public'
-                . \str_replace('/', DIRECTORY_SEPARATOR, $path);
-
-            if (\file_exists($resource) && \is_file($resource)) {
-                return new Response(200, [], \file_get_contents($resource));
-            }
+        if ($response = $this->serveAssets($method, $path)) {
+            return $response;
         }
 
         // Get POST parameters
         $post = [];
 
         if (
-            \in_array(\strtoupper($method), ['POST', 'PUT', 'DELETE', 'PATCH'])
-            && isset($headers['Content-Type'])
+            isset($headers['Content-Type'])
             && (0 === \strpos($headers['Content-Type'][0], 'application/x-www-form-urlencoded'))
+            && \in_array(\strtoupper($method), ['POST', 'PUT', 'DELETE', 'PATCH'])
         ) {
             \parse_str($content, $post);
         }
@@ -85,10 +88,6 @@ class RequestLoop
         $sfRequest->headers->replace($headers);
         $sfRequest->server->set('REQUEST_URI', $path);
 
-//    if (isset($headers['Host'])) {
-//        $sfRequest->server->set('SERVER_NAME', explode(':', $headers['Host'])[0]);
-//    }
-
         try {
             /** @var \Symfony\Component\HttpFoundation\Response $sfResponse */
             $sfResponse = $this->kernel->handle($sfRequest);
@@ -102,6 +101,36 @@ class RequestLoop
             );
         } catch (\Throwable $e) {
             $this->consoleOutput->getErrorOutput()->writeln($e->getMessage(), PHP_EOL, $e->getTraceAsString());
+
+            return new Response(
+                500,
+                [],
+                'Internal server error'
+            );
         }
+    }
+
+    /**
+     * Checks if an asset can be served and creates a ReactPHP response if it can.
+     *
+     * @param string $method
+     * @param $path
+     *
+     * @return Response|null
+     */
+    private function serveAssets(string $method, $path)
+    {
+        if ('GET' !== $method) {
+            return null;
+        }
+
+        $resource = $this->projectRootPath . DIRECTORY_SEPARATOR . 'public'
+            . \str_replace('/', DIRECTORY_SEPARATOR, $path);
+
+        if (!\file_exists($resource) || !\is_file($resource)) {
+            return null;
+        }
+
+        return new Response(200, [], \file_get_contents($resource));
     }
 }
