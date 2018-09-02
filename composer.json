@@ -11,16 +11,21 @@
     ],
     "minimum-stability": "stable",
     "require": {
+        "php": ">=7.0",
         "react/http": "^0.8.0",
         "symfony/http-foundation": "*",
         "symfony/console": "*"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.13"
     },
     "autoload": {
       "psr-4": {
         "Jdomenechb\\ReactPhpSymfonyServer\\": "src/"
       }
     },
-  "bin": ["bin/reactphp-server"]
+  "bin": ["bin/reactphp-server"],
+  "scripts": {
+    "cs": "vendor/bin/php-cs-fixer fix"
+  }
 }

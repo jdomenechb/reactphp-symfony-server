@@ -1,12 +1,20 @@
 <?php
 
-require dirname(__DIR__, 3) . '/autoload.php';
+/**
+ * This file is part of the reactphp-symfony-server package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+require \dirname(__DIR__, 3) . '/autoload.php';
 
 /*
  * Helpers
  */
 $rpssPrefix = '.reactphp-symfony-server-dist-';
-$projectRootPath = dirname(__DIR__, 4   );
+$projectRootPath = \dirname(__DIR__, 4);
 
 /*
  * Preparation of reference data
@@ -27,22 +35,22 @@ $symfonyIndexFileDate = $symfonyIndexFileInfoObj->getMTime();
 $binDate = (new SplFileInfo(__FILE__))->getMTime();
 
 // See which is the most recent
-$updatedDate = max($binDate, $symfonyIndexFileDate);
+$updatedDate = \max($binDate, $symfonyIndexFileDate);
 
 // Check if script file has been created and is updated
 $created = false;
 
-if ($files = glob(__DIR__ .  DIRECTORY_SEPARATOR . $rpssPrefix . '*')) {
-    $file = array_shift($files);
+if ($files = \glob(__DIR__ . DIRECTORY_SEPARATOR . $rpssPrefix . '*')) {
+    $file = \array_shift($files);
 
     // Extract the reference date
-    preg_match('#-(\d+)$#', $file, $matches);
+    \preg_match('#-(\\d+)$#', $file, $matches);
     $refDate = (int) $matches[1];
 
     if ($refDate === $updatedDate) {
         $created = $file;
     } else {
-        unlink($file);
+        \unlink($file);
     }
 }
 
@@ -59,21 +67,21 @@ if (!$created) {
         $line = $symfonyIndexFileObj->fgets();
 
         // Do not include the require vendor/autoload line
-        if (preg_match('#^require .*vendor/autoload#', $line)) {
+        if (\preg_match('#^require .*vendor/autoload#', $line)) {
             continue;
         }
 
-        $line = str_replace('__DIR__', '$projectRootPath . \'/public\'', $line);
+        $line = \str_replace('__DIR__', '$projectRootPath . \'/public\'', $line);
 
         $result .= $line;
 
         // Stop after the kernel has been created
-        if (preg_match('#\$kernel\s*=\s*#', $line)) {
+        if (\preg_match('#\\$kernel\\s*=\\s*#', $line)) {
             break;
         }
     }
 
-    file_put_contents($path, $result);
+    \file_put_contents($path, $result);
     $created = $path;
 }
 
@@ -83,7 +91,7 @@ if (!$created) {
 require $created;
 
 // --- ReactPHP ----
-if (!($port = isset($_SERVER['APP_PORT']) ? $_SERVER['APP_PORT'] : 8000)) {
+if (!($port = $_SERVER['APP_PORT'] ?? 8000)) {
     throw new \RuntimeException('APP_PORT environment variable is not defined. You need to define this environment variable to run the application as a server.');
 }
 
@@ -98,6 +106,6 @@ $server = new \React\Http\Server([$requestLoop, 'request']);
 $socket = new \React\Socket\Server('0.0.0.0:' . $port, $loop);
 $server->listen($socket);
 
-echo "Server running on port $port\n";
+echo "Server running on port ${port}\n";
 
 $loop->run();

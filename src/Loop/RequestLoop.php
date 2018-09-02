@@ -13,7 +13,6 @@ namespace Jdomenechb\ReactPhpSymfonyServer\Loop;
 
 use Psr\Http\Message\ServerRequestInterface;
 use React\Http\Response;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -29,6 +28,7 @@ class RequestLoop
 
     /**
      * RequestLoop constructor.
+     *
      * @param $kernel
      * @param ConsoleOutputInterface $consoleOutput
      * @param $projectRootPath
@@ -49,14 +49,13 @@ class RequestLoop
 
         $this->consoleOutput->writeln('RPHPS -- ' . $method . ' ' . $path);
 
-
         // Check if the file exists in the server to serve it
-        if ($method === 'GET') {
+        if ('GET' === $method) {
             $resource = $this->projectRootPath . DIRECTORY_SEPARATOR . 'public'
-                . str_replace('/', DIRECTORY_SEPARATOR, $path);
+                . \str_replace('/', DIRECTORY_SEPARATOR, $path);
 
-            if (file_exists($resource) && is_file($resource)) {
-                return new Response(200, [], file_get_contents($resource));
+            if (\file_exists($resource) && \is_file($resource)) {
+                return new Response(200, [], \file_get_contents($resource));
             }
         }
 
@@ -64,11 +63,11 @@ class RequestLoop
         $post = [];
 
         if (
-            \in_array(strtoupper($method), ['POST', 'PUT', 'DELETE', 'PATCH'])
+            \in_array(\strtoupper($method), ['POST', 'PUT', 'DELETE', 'PATCH'])
             && isset($headers['Content-Type'])
-            && (0 === strpos($headers['Content-Type'][0], 'application/x-www-form-urlencoded'))
+            && (0 === \strpos($headers['Content-Type'][0], 'application/x-www-form-urlencoded'))
         ) {
-            parse_str($content, $post);
+            \parse_str($content, $post);
         }
 
         // Create the Symfony request
