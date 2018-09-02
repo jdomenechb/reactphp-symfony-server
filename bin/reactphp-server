@@ -14,62 +14,25 @@ use React\Http\Server as HttpServer;
 use React\Socket\Server as SocketServer;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
-require \dirname(__DIR__, 3) . '/autoload.php';
+require \dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'autoload.php';
 
 /*
  * Helpers
  */
-$rpssPrefix = __DIR__ . '.reactphp-symfony-server-tmp';
+$tmpFile = __DIR__ . '.reactphp-symfony-server-tmp';
 $projectRootPath = \dirname(__DIR__, 4);
 
 /*
  * Preparation of reference data
  */
 
-// Check if the symfony index file exists
-$symfonyIndexFile = $projectRootPath . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'index.php';
-
-$symfonyIndexFileInfoObj = new SplFileInfo($symfonyIndexFile);
-
-if (!$symfonyIndexFileInfoObj->isFile()) {
-    throw new RuntimeException('The file ' . $symfonyIndexFileInfoObj->getPath() . ' does not exist');
-}
-
-// Delete the old temporal file
-if (is_file($rpssPrefix)) {
-    unlink($rpssPrefix);
-}
-
-// Update the temporal data from Symfony index
-echo "Updating Startup...\n";
-
-$symfonyIndexFileObj = new SplFileObject($symfonyIndexFile);
-$result = '';
-
-while ($symfonyIndexFileObj->valid()) {
-    $line = $symfonyIndexFileObj->fgets();
-
-    // Do not include the require vendor/autoload line
-    if (\preg_match('#^require .*vendor/autoload#', $line)) {
-        continue;
-    }
-
-    $line = \str_replace('__DIR__', '$projectRootPath . \'/public\'', $line);
-
-    $result .= $line;
-
-    // Stop after the kernel has been created
-    if (\preg_match('#\\$kernel\\s*=\\s*#', $line)) {
-        break;
-    }
-}
-
-\file_put_contents($rpssPrefix, $result);
+$setup = new Jdomenechb\ReactPhpSymfonyServer\Setup\ServerSetup(new ConsoleOutput(), $projectRootPath, $tmpFile);
+$includeFile = $setup->startup();
 
 /*
  * Server start
  */
-require $rpssPrefix;
+require $includeFile;
 
 // --- ReactPHP ----
 if (!($port = $_SERVER['APP_PORT'] ?? 8000)) {
