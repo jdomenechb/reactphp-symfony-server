@@ -44,6 +44,12 @@ Unfortunately, there is no way to assure that. The library has been tested with 
 
 For this reason, I strongly encourage you to contribute to the project in whatever mean you can.
 
+**Q. Can I develop or modify code while using the server?**
+
+If you do so, you might encounter that your changes are not being displayed after refreshing the page. This is due to the fact that, once a class has been loaded in memory during server execution, it will remain unchanged in the app memory.
+
+In order to se your changes, you should restart the server.
+
 
 ## Contributing
 
