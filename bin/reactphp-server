@@ -21,7 +21,7 @@ require \dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'autoload.php';
 /*
  * Helpers
  */
-$tmpFile = __DIR__ . '.reactphp-symfony-server-tmp';
+$tmpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . '.reactphp-symfony-server-tmp';
 $projectRootPath = \dirname(__DIR__, 4);
 
 /*
