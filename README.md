@@ -48,7 +48,7 @@ For this reason, I strongly encourage you to contribute to the project in whatev
 
 If you do so, you might encounter that your changes are not being displayed after refreshing the page. This is due to the fact that, once a class has been loaded in memory during server execution, it will remain unchanged in the app memory.
 
-In order to se your changes, you should restart the server.
+In order to see your changes, you should restart the server.
 
 
 ## Contributing
