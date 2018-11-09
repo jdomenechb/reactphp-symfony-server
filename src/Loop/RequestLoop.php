@@ -108,7 +108,7 @@ class RequestLoop
                 '404: Page not found'
             );
         } catch (\Throwable $e) {
-            $this->consoleOutput->getErrorOutput()->writeln($e->getMessage(), PHP_EOL, $e->getTraceAsString());
+            $this->consoleOutput->getErrorOutput()->writeln(['ERROR: ' . $e->getMessage(), $e->getTraceAsString()]);
 
             return new Response(
                 500,
