@@ -72,7 +72,11 @@ class RequestLoop
             && (0 === \strpos($headers['Content-Type'][0], 'application/x-www-form-urlencoded'))
             && \in_array(\strtoupper($method), ['POST', 'PUT', 'DELETE', 'PATCH'])
         ) {
-            \parse_str($content, $post);
+            if (!$content && ($parsedBody = $request->getParsedBody())) {
+                $post = $parsedBody;
+            } else {
+                \parse_str($content, $post);
+            }
         }
 
         // Create the Symfony request
