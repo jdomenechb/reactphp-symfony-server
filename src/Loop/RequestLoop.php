@@ -15,7 +15,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use React\Http\Response;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class RequestLoop
 {
@@ -95,31 +95,31 @@ class RequestLoop
         $sfRequest->server->set('REQUEST_URI', $path);
 
         try {
-            /** @var \Symfony\Component\HttpFoundation\Response $sfResponse */
-            $sfResponse = $this->kernel->handle($sfRequest);
+           /** @var \Symfony\Component\HttpFoundation\Response $sfResponse */
+           $sfResponse = $this->kernel->handle($sfRequest);
 
-            $this->kernel->terminate($sfRequest, $sfResponse);
+           $this->kernel->terminate($sfRequest, $sfResponse);
 
-            return new Response(
-                $sfResponse->getStatusCode(),
-                $sfResponse->headers->all(),
-                $sfResponse->getContent()
-            );
-        } catch (NotFoundHttpException $e) {
-            return new Response(
-                404,
-                [],
-                '404: Page not found'
-            );
-        } catch (\Throwable $e) {
-            $this->consoleOutput->getErrorOutput()->writeln(['ERROR: ' . $e->getMessage(), $e->getTraceAsString()]);
+           return new Response(
+               $sfResponse->getStatusCode(),
+               $sfResponse->headers->all(),
+               $sfResponse->getContent()
+           );
+       } catch (HttpException $e) {
+           return new Response(
+               $e->getStatusCode(),
+               [],
+               $e->getStatusCode() . ': ' . $e->getMessage()
+           );
+       } catch (\Throwable $e) {
+           $this->consoleOutput->getErrorOutput()->writeln(['ERROR: ' . $e->getMessage(), $e->getTraceAsString()]);
 
-            return new Response(
-                500,
-                [],
-                'Internal server error'
-            );
-        }
+           return new Response(
+               500,
+               [],
+               'Internal server error'
+           );
+       }
     }
 
     /**
