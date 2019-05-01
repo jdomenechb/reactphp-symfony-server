@@ -28,7 +28,9 @@ $projectRootPath = \dirname(__DIR__, 4);
  * Preparation of reference data
  */
 
-$setup = new Jdomenechb\ReactPhpSymfonyServer\Setup\ServerSetup(new ConsoleOutput(), $projectRootPath, $tmpFile);
+$consoleOutput = new ConsoleOutput();
+
+$setup = new Jdomenechb\ReactPhpSymfonyServer\Setup\ServerSetup($consoleOutput, $projectRootPath, $tmpFile);
 $includeFile = $setup->startup();
 
 /*
@@ -51,6 +53,5 @@ $server = new HttpServer([$requestLoop, 'request']);
 $socket = new SocketServer('0.0.0.0:' . $port, $loop);
 $server->listen($socket);
 
-echo "Server running on port ${port}\n";
-
+$consoleOutput->writeln("Server running on port ${port}");
 $loop->run();
