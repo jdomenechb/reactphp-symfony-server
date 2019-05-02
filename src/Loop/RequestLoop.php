@@ -11,6 +11,7 @@
 
 namespace Jdomenechb\ReactPhpSymfonyServer\Loop;
 
+use Jdomenechb\ReactPhpSymfonyServer\Resolver\MimeTypeResolver;
 use Psr\Http\Message\ServerRequestInterface;
 use React\Http\Response;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
@@ -27,17 +28,22 @@ class RequestLoop
     /** @var string */
     private $projectRootPath;
 
+    /** @var MimeTypeResolver */
+    private $mimeTypeResolver;
+
     /**
      * RequestLoop constructor.
      *
      * @param $kernel
      * @param ConsoleOutputInterface $consoleOutput
      * @param $projectRootPath
+     * @param MimeTypeResolver $mimeTypeResolver
      */
-    public function __construct($kernel, ConsoleOutputInterface $consoleOutput, $projectRootPath)
+    public function __construct($kernel, ConsoleOutputInterface $consoleOutput, MimeTypeResolver $mimeTypeResolver, $projectRootPath)
     {
         $this->kernel = $kernel;
         $this->consoleOutput = $consoleOutput;
+        $this->mimeTypeResolver = $mimeTypeResolver;
         $this->projectRootPath = $projectRootPath;
     }
 
@@ -95,31 +101,31 @@ class RequestLoop
         $sfRequest->server->set('REQUEST_URI', $path);
 
         try {
-           /** @var \Symfony\Component\HttpFoundation\Response $sfResponse */
-           $sfResponse = $this->kernel->handle($sfRequest);
+            /** @var \Symfony\Component\HttpFoundation\Response $sfResponse */
+            $sfResponse = $this->kernel->handle($sfRequest);
 
-           $this->kernel->terminate($sfRequest, $sfResponse);
+            $this->kernel->terminate($sfRequest, $sfResponse);
 
-           return new Response(
-               $sfResponse->getStatusCode(),
-               $sfResponse->headers->all(),
-               $sfResponse->getContent()
-           );
-       } catch (HttpException $e) {
-           return new Response(
-               $e->getStatusCode(),
-               [],
-               $e->getStatusCode() . ': ' . $e->getMessage()
-           );
-       } catch (\Throwable $e) {
-           $this->consoleOutput->getErrorOutput()->writeln(['ERROR: ' . $e->getMessage(), $e->getTraceAsString()]);
+            return new Response(
+                $sfResponse->getStatusCode(),
+                $sfResponse->headers->all(),
+                $sfResponse->getContent()
+            );
+        } catch (HttpException $e) {
+            return new Response(
+                $e->getStatusCode(),
+                [],
+                $e->getStatusCode() . ': ' . $e->getMessage()
+            );
+        } catch (\Throwable $e) {
+            $this->consoleOutput->getErrorOutput()->writeln(['ERROR: ' . $e->getMessage(), $e->getTraceAsString()]);
 
-           return new Response(
-               500,
-               [],
-               'Internal server error'
-           );
-       }
+            return new Response(
+                500,
+                [],
+                'Internal server error'
+            );
+        }
     }
 
     /**
@@ -143,6 +149,15 @@ class RequestLoop
             return;
         }
 
-        return new Response(200, [], \file_get_contents($resource));
+        $headers = [];
+
+        // Detect Mime-Type
+        $mimeType = $this->mimeTypeResolver->fromFileName($resource);
+
+        if ($mimeType) {
+            $headers['Content-Type'] = $mimeType;
+        }
+
+        return new Response(200, $headers, \file_get_contents($resource));
     }
 }

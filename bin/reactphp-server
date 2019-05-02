@@ -11,6 +11,7 @@
  */
 
 use Jdomenechb\ReactPhpSymfonyServer\Loop\RequestLoop;
+use Jdomenechb\ReactPhpSymfonyServer\Resolver\MimeyMimeTypeResolver;
 use React\EventLoop\Factory;
 use React\Http\Server as HttpServer;
 use React\Socket\Server as SocketServer;
@@ -21,16 +22,14 @@ require \dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'autoload.php';
 /*
  * Helpers
  */
-$tmpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . '.reactphp-symfony-server-tmp';
+$tmpFile = \sys_get_temp_dir() . DIRECTORY_SEPARATOR . '.reactphp-symfony-server-tmp';
 $projectRootPath = \dirname(__DIR__, 4);
 
 /*
  * Preparation of reference data
  */
 
-$consoleOutput = new ConsoleOutput();
-
-$setup = new Jdomenechb\ReactPhpSymfonyServer\Setup\ServerSetup($consoleOutput, $projectRootPath, $tmpFile);
+$setup = new Jdomenechb\ReactPhpSymfonyServer\Setup\ServerSetup(new ConsoleOutput(), $projectRootPath, $tmpFile);
 $includeFile = $setup->startup();
 
 /*
@@ -38,20 +37,23 @@ $includeFile = $setup->startup();
  */
 require $includeFile;
 
+/* @var $kernel */
+
 // --- ReactPHP ----
 if (!($port = $_SERVER['APP_PORT'] ?? 8000)) {
     $msg = 'APP_PORT environment variable is not defined. You need to define this environment variable to run '
-    . 'the application as a server.';
+        . 'the application as a server.';
 
     throw new \RuntimeException($msg);
 }
 
 $loop = Factory::create();
-$requestLoop = new RequestLoop($kernel, new ConsoleOutput(), $projectRootPath);
+$requestLoop = new RequestLoop($kernel, new ConsoleOutput(), new MimeyMimeTypeResolver(), $projectRootPath);
 
 $server = new HttpServer([$requestLoop, 'request']);
 $socket = new SocketServer('0.0.0.0:' . $port, $loop);
 $server->listen($socket);
 
-$consoleOutput->writeln("Server running on port ${port}");
+echo "Server running on port ${port}\n";
+
 $loop->run();
