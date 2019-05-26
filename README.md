@@ -1,6 +1,6 @@
 # ReactPHP Symfony Server
 
-This library wraps a ReactPHP server over a Symfony project installation.
+This library wraps a ReactPHP server over a Symfony 4 project installation.
 
 ## Installation (using composer)
 
@@ -27,6 +27,10 @@ The server will inform of the port it is running.
 The library takes the `public/index.php` file from the project root, and reads it until the point the Symfony kernel is created. Then, from this point, it takes control in order to provide the ReactPHP server.
 
 Once executed, requests are made directly to the server and translated to Symfony requests, which are dealt then by the Symfony Kernel. The Kernel provides afterwards a response, which is translated back to a response the ReactPHP server can understand.
+
+**Q. Which versions of PHP and Symfony are supported?**
+
+PHP >= 7.1 and Symfony 4.*.
 
 **Q. Does it serve static assets too?**
 
